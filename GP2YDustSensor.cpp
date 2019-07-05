@@ -5,10 +5,15 @@
 /**
  * @param GP2YDustSensorType type use one of the two supported types
  * @param uint8_t ledOutputPin - the GPIO pin powering up the Sharp IR LED
- * @param uint8_t analogReadPin - the analog input pin connected from the Sharp analog output (Vo). On ESP8266 there is a single A0 pin
- * @param uint16_t runningAverageCount - number of samples taken for the running average. use 0 to disable running average
+ * @param uint8_t analogReadPin - the analog input pin connected from the Sharp analog output (Vo).
+ * On ESP8266 there is a single A0 pin
+ * @param uint16_t runningAverageCount - number of samples taken for the running average.
+ * use 0 to disable running average
  */
-GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type, uint8_t ledOutputPin, uint8_t analogReadPin, uint16_t runningAverageCount)
+GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
+                               uint8_t ledOutputPin,
+                               uint8_t analogReadPin,
+                               uint16_t runningAverageCount)
 {
     this->ledOutputPin = ledOutputPin;
     this->analogReadPin = analogReadPin;
@@ -16,7 +21,6 @@ GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type, uint8_t ledOutputPin, ui
     this->sensitivity = 0.5; // default sensitivity from datasheet
     
     switch (type) {
-
         case GP2Y1010AU0F:
             // sensitivity: min/typ/max: 0.425 / 0.5 / 0.75 
             // output voltage at no dust: min/typ/max 0v / 0.9v / 1.5v
@@ -75,7 +79,7 @@ float GP2YDustSensor::getBaseline()
  */
 void GP2YDustSensor::setSensitivity(float sensitivity)
 {
-  this->sensitivity = sensitivity;
+    this->sensitivity = sensitivity;
 }
 
 /**
@@ -83,7 +87,7 @@ void GP2YDustSensor::setSensitivity(float sensitivity)
  */
 float GP2YDustSensor::getSensitivity()
 {
-  return this->sensitivity;
+    return this->sensitivity;
 }
 
 /**
@@ -116,44 +120,44 @@ uint16_t GP2YDustSensor::readDustRawOnce()
  */
 uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples)
 {
-  uint32_t total = 0;
-  uint16_t avgRaw;
+    uint32_t total = 0;
+    uint16_t avgRaw;
   
-  for (uint8_t i = 0; i < numSamples; i++) {
-    total += this->readDustRawOnce();
-    // Wait for remainder of the 10ms cycle = 10000 - 280 - 100 microseconds.
-    delayMicroseconds(9620);
-  }
+    for (uint8_t i = 0; i < numSamples; i++) {
+        total += this->readDustRawOnce();
+        // Wait for remainder of the 10ms cycle = 10000 - 280 - 100 microseconds.
+        delayMicroseconds(9620);
+    }
 
-  avgRaw = total / numSamples;
-  
-  // we scale up the read ADC voltage to the sensor's 5V output range
-  // so we can interpret the results based on voltage
-  // we assume a 10 bit ADC resolution currently given by analogRead()
-  float scaledVoltage = avgRaw * (5.0 / 1024) * calibrationFactor;
-  
-  uint16_t dustDensity;
-  
-  if (scaledVoltage < zeroDustVoltage) {
-    dustDensity = 0;
-  } else {
-    // taken from the graph, at 0.4mg dust density we should have 3.05 volts
-    // 3.05v ................ 0.4
-    // scaledVoltage ........ ?
-    // ? = scaledVoltage * 0.4 / 3.05
-    // We will try to be smarter and adjust the graph
-    // according to the zero dust voltage offset and sensitivity
-    // typical zero dust is 0.6V but I observed 0.4V on my sensor
-    // sensor sensitivy is 0.5V according to the datasheet
-    // dustDensity is expressed in ug/m3
-    dustDensity = (scaledVoltage - zeroDustVoltage) / this->sensitivity * 100;
-  }
+    avgRaw = total / numSamples;
 
-  if (this->runningAverageCount) {
-    this->updateRunningAverage(dustDensity);
-  }
+    // we scale up the read ADC voltage to the sensor's 5V output range
+    // so we can interpret the results based on voltage
+    // we assume a 10 bit ADC resolution currently given by analogRead()
+    float scaledVoltage = avgRaw * (5.0 / 1024) * calibrationFactor;
 
-  return dustDensity;
+    uint16_t dustDensity;
+
+    if (scaledVoltage < zeroDustVoltage) {
+        dustDensity = 0;
+    } else {
+        // taken from the graph, at 0.4mg dust density we should have 3.05 volts
+        // 3.05v ................ 0.4
+        // scaledVoltage ........ ?
+        // ? = scaledVoltage * 0.4 / 3.05
+        // We will try to be smarter and adjust the graph
+        // according to the zero dust voltage offset and sensitivity
+        // typical zero dust is 0.6V but I observed 0.4V on my sensor
+        // sensor sensitivy is 0.5V according to the datasheet
+        // dustDensity is expressed in ug/m3
+        dustDensity = (scaledVoltage - zeroDustVoltage) / this->sensitivity * 100;
+    }
+
+    if (this->runningAverageCount) {
+        this->updateRunningAverage(dustDensity);
+    }
+
+    return dustDensity;
 }
 
 /**
@@ -166,24 +170,24 @@ uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples)
  */
 uint16_t GP2YDustSensor::getRunningAverage()
 {
-  if (!this->runningAverageCount) {
-    return -1;
-    //throw std::runtime_error("Running average was disabled from constructor. Use runningAverageCount to specify the size.");
-  }
+    if (!this->runningAverageCount) {
+        return -1;
+        //throw std::runtime_error("Running average was disabled from constructor. Use runningAverageCount to specify the size.");
+    }
 
   float runningAverage = 0;
   uint16_t availRunningAverageSampleCount = 0;
 
-  for (uint16_t i = 0; i < this->runningAverageCount; i++) {
-    if (this->runningAverageBuffer[i] != -1) {
-        runningAverage += this->runningAverageBuffer[i];
-        availRunningAverageSampleCount++;
+    for (uint16_t i = 0; i < this->runningAverageCount; i++) {
+        if (this->runningAverageBuffer[i] != -1) {
+            runningAverage += this->runningAverageBuffer[i];
+            availRunningAverageSampleCount++;
+        }
     }
-  }
   
-  runningAverage /= availRunningAverageSampleCount;
+    runningAverage /= availRunningAverageSampleCount;
 
-  return round(runningAverage);
+    return round(runningAverage);
 } 
 
 /**
@@ -206,9 +210,9 @@ GP2YDustSensor::~GP2YDustSensor()
 
 void GP2YDustSensor::updateRunningAverage(uint16_t value)
 {
-  this->runningAverageBuffer[this->nextRunningAverageCounter++] = value;
-  if (this->runningAverageCounter >= this->runningAverageCount)
-  {
-    this->nextRunningAverageCounter = 0; 
-  }
+    this->nextRunningAverageCounter++;
+    if (this->nextRunningAverageCounter > this->runningAverageCount) {
+        this->nextRunningAverageCounter = 0; 
+    }
+    this->runningAverageBuffer[this->nextRunningAverageCounter] = value;
 }
