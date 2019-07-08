@@ -19,6 +19,7 @@ GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
     this->analogReadPin = analogReadPin;
     this->type = type;
     this->sensitivity = 0.5; // default sensitivity from datasheet
+    this->nextRunningAverageCounter = 0;
     
     switch (type) {
         case GP2Y1010AU0F:
@@ -37,7 +38,7 @@ GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
 
     this->runningAverageCount = runningAverageCount;
     if (this->runningAverageCount) {
-        this->runningAverageBuffer = new int[this->runningAverageCount];
+        this->runningAverageBuffer = new int16_t[this->runningAverageCount];
         // init with -1
         for (uint16_t i = 0; i < this->runningAverageCount; i++) {
             this->runningAverageBuffer[i] = -1;
@@ -176,16 +177,20 @@ uint16_t GP2YDustSensor::getRunningAverage()
     }
 
   float runningAverage = 0;
-  uint16_t availRunningAverageSampleCount = 0;
+  uint16_t sampleCount = 0;
 
     for (uint16_t i = 0; i < this->runningAverageCount; i++) {
         if (this->runningAverageBuffer[i] != -1) {
             runningAverage += this->runningAverageBuffer[i];
-            availRunningAverageSampleCount++;
+            sampleCount++;
         }
     }
+
+    if (sampleCount == 0) {
+        return 0;
+    }
   
-    runningAverage /= availRunningAverageSampleCount;
+    runningAverage /= sampleCount;
 
     return round(runningAverage);
 } 
@@ -210,9 +215,10 @@ GP2YDustSensor::~GP2YDustSensor()
 
 void GP2YDustSensor::updateRunningAverage(uint16_t value)
 {
+    this->runningAverageBuffer[this->nextRunningAverageCounter] = value;
+
     this->nextRunningAverageCounter++;
-    if (this->nextRunningAverageCounter > this->runningAverageCount) {
+    if (this->nextRunningAverageCounter >= this->runningAverageCount) {
         this->nextRunningAverageCounter = 0; 
     }
-    this->runningAverageBuffer[this->nextRunningAverageCounter] = value;
 }

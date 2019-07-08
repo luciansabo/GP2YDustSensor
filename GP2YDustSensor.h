@@ -16,7 +16,7 @@ class GP2YDustSensor
         float zeroDustVoltage;
         float calibrationFactor;
         float sensitivity;
-        int *runningAverageBuffer;
+        int16_t *runningAverageBuffer;
         int runningAverageCount;
         int nextRunningAverageCounter;
         int runningAverageCounter;
