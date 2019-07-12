@@ -1,0 +1,14 @@
+v. 1.1.0
+- added baseline candidate calculation, so you can dynamically adjust the observed sensor offset drift
+
+v. 1.0.0 - initial release
+- multi-reading average
+- running average
+- runtime calibration
+- sensitivity setting
+- offset adjustment (zero dust value)
+
+Compatibility:
+
+GP2Y1010AU0F
+GP2Y1014AU0F

@@ -25,12 +25,20 @@ GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
         case GP2Y1010AU0F:
             // sensitivity: min/typ/max: 0.425 / 0.5 / 0.75 
             // output voltage at no dust: min/typ/max 0v / 0.9v / 1.5v
-            this->zeroDustVoltage = 0.9;
+            
+            this->minZeroDustVoltage = 0;
+            this->typZeroDustVoltage = 0.9;
+            this->maxZeroDustVoltage = 1.5;
+            this->zeroDustVoltage = this->minDustVoltage = this->typZeroDustVoltage;
             break;
         case GP2Y1014AU0F:
             // sensitivity: min/typ/max: 0.35 / 0.5 / 0.65 
             // output voltage at no dust: min/typ/max: 0.1v / 0.6v / 1.1v
-            this->zeroDustVoltage = 0.6;
+
+            this->minZeroDustVoltage = 0.1;
+            this->typZeroDustVoltage = 0.6;
+            this->maxZeroDustVoltage = 1.1;
+            this->zeroDustVoltage = this->minDustVoltage = this->typZeroDustVoltage;
             break;
     }
 
@@ -68,6 +76,21 @@ void GP2YDustSensor::setBaseline(float zeroDustVoltage)
 float GP2YDustSensor::getBaseline()
 {
     return this->zeroDustVoltage;
+}
+
+/**
+* Returns the new baseline candidate, determined after reading enough samples
+* (you need at least 1 minute worth of samples to be of any help) 
+* 
+* @return float baseline candidate scaled voltage
+* @see GP2YDustSensor::setBaseline
+*/
+float GP2YDustSensor::getBaselineCandidate()
+{
+    float candidate = this->minDustVoltage;
+    // reset min voltage to enable selection of new candidate
+    this->minDustVoltage = this->maxZeroDustVoltage;
+    return candidate;
 }
 
 /**
@@ -137,6 +160,11 @@ uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples)
     // we assume a 10 bit ADC resolution currently given by analogRead()
     float scaledVoltage = avgRaw * (5.0 / 1024) * calibrationFactor;
 
+    // determine new baseline candidate
+    if (scaledVoltage < this->minDustVoltage && scaledVoltage >= minZeroDustVoltage && scaledVoltage <= maxZeroDustVoltage) {
+        this->minDustVoltage = scaledVoltage;
+    }
+
     uint16_t dustDensity;
 
     if (scaledVoltage < zeroDustVoltage) {
@@ -189,7 +217,7 @@ uint16_t GP2YDustSensor::getRunningAverage()
     if (sampleCount == 0) {
         return 0;
     }
-  
+    
     runningAverage /= sampleCount;
 
     return round(runningAverage);

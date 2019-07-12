@@ -14,6 +14,10 @@ class GP2YDustSensor
         uint8_t ledOutputPin;
         uint8_t analogReadPin;
         float zeroDustVoltage;
+        float minDustVoltage;
+        float minZeroDustVoltage;
+        float maxZeroDustVoltage;
+        float typZeroDustVoltage;
         float calibrationFactor;
         float sensitivity;
         int16_t *runningAverageBuffer;
@@ -33,6 +37,7 @@ class GP2YDustSensor
         uint16_t getRunningAverage();
         float getBaseline();
         void setBaseline(float zeroDustVoltage);
+        float getBaselineCandidate();
         void setSensitivity(float sensitivity);
         float getSensitivity();
         void setCalibrationFactor(float slope);
