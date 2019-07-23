@@ -18,12 +18,16 @@ class GP2YDustSensor
         float minZeroDustVoltage;
         float maxZeroDustVoltage;
         float typZeroDustVoltage;
+        float currentBaselineCandidate;
+        bool hasBaselineCandidate;
+        uint16_t readCount = 0;
         float calibrationFactor;
         float sensitivity;
         int16_t *runningAverageBuffer;
         int runningAverageCount;
         int nextRunningAverageCounter;
         int runningAverageCounter;
+        const uint8_t BASELINE_CANDIDATE_MIN_READINGS = 10;
 
     protected:
         uint16_t readDustRawOnce();

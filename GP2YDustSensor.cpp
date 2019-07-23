@@ -20,6 +20,8 @@ GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
     this->type = type;
     this->sensitivity = 0.5; // default sensitivity from datasheet
     this->nextRunningAverageCounter = 0;
+    this->hasBaselineCandidate = false;
+    this->readCount = 0;
     
     switch (type) {
         case GP2Y1010AU0F:
@@ -43,6 +45,7 @@ GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
     }
 
     this->calibrationFactor = 1;
+    this->currentBaselineCandidate = this->typZeroDustVoltage;
 
     this->runningAverageCount = runningAverageCount;
     if (this->runningAverageCount) {
@@ -87,9 +90,17 @@ float GP2YDustSensor::getBaseline()
 */
 float GP2YDustSensor::getBaselineCandidate()
 {
+    if (!hasBaselineCandidate) {
+        return this->currentBaselineCandidate;
+    }
+
     float candidate = this->minDustVoltage;
     // reset min voltage to enable selection of new candidate
     this->minDustVoltage = this->maxZeroDustVoltage;
+    this->currentBaselineCandidate = this->minDustVoltage;
+    readCount = 0; // reset read sample count
+    hasBaselineCandidate = false;
+
     return candidate;
 }
 
@@ -184,6 +195,13 @@ uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples)
 
     if (this->runningAverageCount) {
         this->updateRunningAverage(dustDensity);
+    }
+
+    if (!hasBaselineCandidate) {
+        readCount++;
+        if (readCount > BASELINE_CANDIDATE_MIN_READINGS) {
+            hasBaselineCandidate = true;
+        }
     }
 
     return dustDensity;
