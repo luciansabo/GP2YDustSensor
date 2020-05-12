@@ -8,6 +8,7 @@
  * @param uint8_t analogReadPin - the analog input pin connected from the Sharp analog output (Vo).
  * On ESP8266 there is a single A0 pin
  * @param uint16_t runningAverageCount - number of samples taken for the running average.
+ * @param float voltageReference - analog voltage reference for analogRead(analogReadPin)
  * use 0 to disable running average
  */
 GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,

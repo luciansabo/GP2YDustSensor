@@ -24,16 +24,18 @@ Create an object of type `GP2YDustSensor` specifying the type, the GPIO pin driv
  * On ESP8266 there is a single A0 pin
  * @param uint16_t runningAverageCount - number of samples taken for the running average.
  * use 0 to disable running average
+ * @param float voltageReference - analog voltage reference for analogRead(analogReadPin)
  */
 GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
                                uint8_t ledOutputPin,
                                uint8_t analogReadPin,
-                               uint16_t runningAverageCount)
+                               uint16_t runningAverageCount,
+                               float voltageReference)
 ```
 
 The forth parameter can be used to specify how many samples are used for calculating the running average.
 
-Call `dustSensor.init()` somewhere in the `setup()` method to initialize the sensor.
+Call `dustSensor.begin()` somewhere in the `setup()` method to initialize the sensor.
 Then use `dustSensor.getDustDensity()` to obtain an average dust average for the number of samples specified (default 20):
 
 ```c++
