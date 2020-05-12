@@ -13,10 +13,12 @@
 GP2YDustSensor::GP2YDustSensor(GP2YDustSensorType type,
                                uint8_t ledOutputPin,
                                uint8_t analogReadPin,
-                               uint16_t runningAverageCount)
+                               uint16_t runningAverageCount,
+                               float voltageReference)
 {
     this->ledOutputPin = ledOutputPin;
     this->analogReadPin = analogReadPin;
+    this->vRef = voltageReference;
     this->type = type;
     this->sensitivity = 0.5; // default sensitivity from datasheet
     this->nextRunningAverageCounter = 0;
@@ -153,7 +155,7 @@ uint16_t GP2YDustSensor::readDustRawOnce()
  * 
  * @return uint16_t dust density between 0 and 600 ug/m3
  */
-uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples, float vRef)
+uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples)
 {
     uint32_t total = 0;
     uint16_t avgRaw;
@@ -169,7 +171,7 @@ uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples, float vRef)
     // we scale up the read ADC voltage to the vRef input range
     // so we can interpret the results based on voltage
     // we assume a 10 bit ADC resolution currently given by analogRead()
-    float scaledVoltage = avgRaw * (vRef / 1024) * calibrationFactor;
+    float scaledVoltage = avgRaw * (this->vRef / 1024) * calibrationFactor;
 
     // determine new baseline candidate
     if (scaledVoltage < this->minDustVoltage && scaledVoltage >= minZeroDustVoltage && scaledVoltage <= maxZeroDustVoltage) {
