@@ -37,7 +37,7 @@ class GP2YDustSensor
         GP2YDustSensor(GP2YDustSensorType type, uint8_t ledOutputPin, uint8_t analogReadPin, uint16_t runningAverageCount = 60);
         ~GP2YDustSensor();
         void begin();
-        uint16_t getDustDensity(uint16_t numSamples = 20);
+        uint16_t getDustDensity(uint16_t numSamples = 20, float vRef = 5.0);
         uint16_t getRunningAverage();
         float getBaseline();
         void setBaseline(float zeroDustVoltage);

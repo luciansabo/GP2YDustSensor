@@ -153,7 +153,7 @@ uint16_t GP2YDustSensor::readDustRawOnce()
  * 
  * @return uint16_t dust density between 0 and 600 ug/m3
  */
-uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples)
+uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples, float vRef)
 {
     uint32_t total = 0;
     uint16_t avgRaw;
@@ -166,10 +166,10 @@ uint16_t GP2YDustSensor::getDustDensity(uint16_t numSamples)
 
     avgRaw = total / numSamples;
 
-    // we scale up the read ADC voltage to the sensor's 5V output range
+    // we scale up the read ADC voltage to the vRef input range
     // so we can interpret the results based on voltage
     // we assume a 10 bit ADC resolution currently given by analogRead()
-    float scaledVoltage = avgRaw * (5.0 / 1024) * calibrationFactor;
+    float scaledVoltage = avgRaw * (vRef / 1024) * calibrationFactor;
 
     // determine new baseline candidate
     if (scaledVoltage < this->minDustVoltage && scaledVoltage >= minZeroDustVoltage && scaledVoltage <= maxZeroDustVoltage) {
