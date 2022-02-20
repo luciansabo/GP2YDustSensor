@@ -245,7 +245,7 @@ uint16_t GP2YDustSensor::getRunningAverage()
  * Set a calibration factor to improve accuracy
  * Calibrate against known source / precision instrument
  * 
- * @oaram float slope
+ * @param float slope
  */
 void GP2YDustSensor::setCalibrationFactor(float slope)
 {
